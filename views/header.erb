@@ -4,10 +4,12 @@
   <meta charset="utf-8">
   <title>Cheesy Parts</title>
   <link rel="shortcut icon" href="//media.team254.com/homepage/icons/favicon32.png">
-  <% if @user && @user.theme?("classic") %>
-    <link href="/css/bootstrap.min.css" rel="stylesheet">  <% end %>
-  <% if @user && @user.theme?("darkly") %>
-    <link href="/css/dark/bootstrap.min.css" rel="stylesheet">
+  <% if @user && @user.theme?("slate") %>
+    <link href="/css/slate/bootstrap.min.css" rel="stylesheet">
+  <% elsif @user && @user.theme?("cyborg") %>
+    <link href="/css/cyborg/bootstrap.min.css" rel="stylesheet">
+  <% else %>
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
   <% end %>
   <link href="/css/bootstrap-datepicker.css" rel="stylesheet">
   <link href='/css/css.css' rel='stylesheet' type='text/css' />
