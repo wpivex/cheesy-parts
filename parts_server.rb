@@ -99,8 +99,11 @@ module CheesyParts
         redirect "/login"
       end
     end
-    get "/uploads/:path" do |path|
-          send_file "./uploads/#{path}", :path => path, :type => 'Application/octet-stream'
+    get "/uploads/*" do
+          path = params[:splat].first
+          type = 'application/pdf'
+          type = 'application/octet-stream' unless path.end_with? ".pdf"
+          send_file "./uploads/#{path}", :path => path, :type => type
     end
     get "/new_project" do
       require_permission(@user.can_administer?)
@@ -260,9 +263,9 @@ module CheesyParts
       end
       if params[:documentation]
         file = params[:documentation][:tempfile]
-        
+
 	# Create directories if they do not exist already
-	
+
 	Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
 	Dir.mkdir("./uploads/#{@part.full_part_number}/docs") unless Dir.exist?("./uploads/#{@part.full_part_number}/docs")
 
@@ -272,9 +275,9 @@ module CheesyParts
       end
       if params[:drawing]
         file = params[:drawing][:tempfile]
-        
+
 	# Create directories if they do not exist already
-	
+
 	Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
 	Dir.mkdir("./uploads/#{@part.full_part_number}/drawing") unless Dir.exist?("./uploads/#{@part.full_part_number}/drawing")
 
@@ -287,7 +290,7 @@ module CheesyParts
         file = params[:toolpath][:tempfile]
 
 	# Create directories if they do not exist already
-	
+
 	Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
 	Dir.mkdir("./uploads/#{@part.full_part_number}/toolpath") unless Dir.exist?("./uploads/#{@part.full_part_number}/toolpath")
 
