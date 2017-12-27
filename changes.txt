@@ -25,11 +25,11 @@ Running list of TODO features and changes:
 - Drawing Upload (PDF only)
 - Supplemental documentation upload (PDF only)
 - Toolpath upload (gcode)
+- User edit own preferences (Name, email, password, theme)
 
 ====== Open Questions ======
 - Do we want to use ordering at all? Or hide it?
 - How can we best integrate with slack? With trello? SSO?
 - What reports might be useful to have?
 - Can we add some form of version control or log updates using signed in user?
-- Dark theme??
 - Easter eggs?
