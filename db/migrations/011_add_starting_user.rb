@@ -5,7 +5,7 @@ require_relative "../../models/user"
 Sequel.migration do
   up do
     user = User.new(:email => "deleteme@team254.com", :first_name => "Delete", :last_name => "Me",
-                    :permission => "admin", :enabled => 1)
+                    :permission => "admin", :enabled => 1, :theme => "classic")
     user.set_password("chezypofs")
     user.save
   end
