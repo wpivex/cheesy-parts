@@ -210,10 +210,9 @@ module CheesyParts
       part = Part.generate_number_and_create(project, params[:type], parent_part)
       part.name = params[:name].gsub("\"", "&quot;")
       part.status = "designing"
-      part.source_material = ""
-      part.have_material = 0
+      part.mfg_method = "manual"
+      part.finish = "none"
       part.quantity = ""
-      part.cut_length = ""
       part.priority = 1
       part.drawing_created = 0
       part.save
@@ -251,10 +250,16 @@ module CheesyParts
         halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
         @part.status = params[:status]
       end
+
+      if params[:mfg_method]
+        halt(400, "Invalid manufacturing method.") unless Part::MFG_MAP.include?(params[:mfg_method])
+        @part.mfg_method = params[:mfg_method]
+      end
+      if params[:finish]
+        halt(400, "Invalid finish type.") unless Part::FINISH_MAP.include?(params[:finish])
+        @part.finish = params[:finish]
+      end
       @part.notes = params[:notes] if params[:notes]
-      @part.source_material = params[:source_material] if params[:source_material]
-      @part.have_material = (params[:have_material] == "on") ? 1 : 0
-      @part.cut_length = params[:cut_length] if params[:cut_length]
       @part.quantity = params[:quantity] if params[:quantity]
       @part.drawing_created = (params[:drawing_created] == "on") ? 1 : 0
       @part.priority = params[:priority] if params[:priority]
