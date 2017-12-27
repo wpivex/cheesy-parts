@@ -350,6 +350,20 @@ module CheesyParts
       @user_edit.save
       redirect "/users"
     end
+    get "/user/prefrences" do
+      erb :user_prefs
+    end
+
+    post "/user/prefrences" do
+      halt(400, "Invalid user.") if @user.nil?
+      @user.email = params[:email] if params[:email]
+      @user.first_name = params[:first_name] if params[:first_name]
+      @user.last_name = params[:last_name] if params[:last_name]
+      @user.set_password(params[:password]) if params[:password] && !params[:password].empty?
+      @user.theme = params[:theme] if params[:theme]
+      @user.save
+      redirect "/user/prefrences"
+    end
 
     get "/users/:id/delete" do
       require_permission(@user.can_administer?)
@@ -368,17 +382,6 @@ module CheesyParts
       redirect "/users"
     end
 
-    get "/change_password" do
-      erb :change_password
-    end
-
-    post "/change_password" do
-      halt(400, "Missing password.") if params[:password].nil? || params[:password].empty?
-      halt(400, "Invalid old password.") unless User.authenticate(@user.email, params[:old_password])
-      @user.set_password(params[:password])
-      @user.save
-      redirect "/"
-    end
 
     get "/register" do
       @admin_new_user = false
