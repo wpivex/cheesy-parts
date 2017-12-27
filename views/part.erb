@@ -54,6 +54,21 @@
     <tr><td><b>Quantity required</b></td><td><%= @part.quantity %></td></tr>
     <tr><td><b>Drawing created?</b></td><td><%= (@part.drawing_created == 1) ? "Yes" : "No" %></td></tr>
     <tr><td><b>Revision Letter</b></td><td><%= @part.rev %></td></tr>
+    
+    <%if @part.drawing_created == 1 %>
+	<tr><td><b>Drawing Link</b></td><td><a href="<%= "./uploads/" + @part.full_part_number + "/drawing/" + @part.full_part_number + "_" + @part.rev + ".pdf" %>">Revision <%= @part.rev %></a></td></tr>
+    <% end %>
+   
+     <%if File.file?("./uploads/"+ @part.full_part_number + "/docs/" + @part.full_part_number + ".pdf") %>
+	<tr><td><b>Documentation Link</b></td><td><a href="<%= "./uploads/" + @part.full_part_number + "/docs/" + @part.full_part_number + ".PDF" %>">Link</a></td></tr>
+    <% end %>
+  
+     <%if File.file?("./uploads/"+ @part.full_part_number + "/toolpath/" + @part.full_part_number + ".gcode") %>
+	<tr><td><b>Toolpath Link</b></td><td><a href="<%= "./uploads/" + @part.full_part_number + "/toolpath/" + @part.full_part_number + ".gcode" %>">Link</a></td></tr>
+    <% end %>
+
+
+
     <tr><td><b>Priority</b></td><td><%= Part::PRIORITY_MAP[@part.priority] %></td></tr>
   </table>
   <% if @user.can_edit? %>

@@ -213,17 +213,17 @@ module CheesyParts
       part = Part.generate_number_and_create(project, params[:type], parent_part)
       part.name = params[:name].gsub("\"", "&quot;")
       part.status = "designing"
-      part.mfg_method = "Manual"
+      part.mfg_method = "Manual/Hand tools"
       part.finish = "None"
       part.rev = ""
       part.quantity = ""
       part.priority = 1
       part.drawing_created = 0
       part.save
-      Dir.mkdir "./uploads/#{part.full_part_number}"
-      Dir.mkdir "./uploads/#{part.full_part_number}/toolpath"
-      Dir.mkdir "./uploads/#{part.full_part_number}/docs"
-      Dir.mkdir "./uploads/#{part.full_part_number}/drawing"
+#      Dir.mkdir "./uploads/#{part.full_part_number}"
+#      Dir.mkdir "./uploads/#{part.full_part_number}/toolpath"
+#      Dir.mkdir "./uploads/#{part.full_part_number}/docs"
+#      Dir.mkdir "./uploads/#{part.full_part_number}/drawing"
       redirect "/parts/#{part.id}"
     end
 
@@ -260,19 +260,37 @@ module CheesyParts
       end
       if params[:documentation]
         file = params[:documentation][:tempfile]
-        File.open("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf", 'wb') do |f|
+        
+	# Create directories if they do not exist already
+	
+	Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
+	Dir.mkdir("./uploads/#{@part.full_part_number}/docs") unless Dir.exist?("./uploads/#{@part.full_part_number}/docs")
+
+	File.open("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf", 'wb') do |f|
           f.write(file.read)
         end
       end
       if params[:drawing]
         file = params[:drawing][:tempfile]
-        File.open("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+@part.increment_revision(@part.rev)}.pdf", 'wb') do |f|
+        
+	# Create directories if they do not exist already
+	
+	Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
+	Dir.mkdir("./uploads/#{@part.full_part_number}/drawing") unless Dir.exist?("./uploads/#{@part.full_part_number}/drawing")
+
+	File.open("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf", 'wb') do |f|
           f.write(file.read)
         end
         @part.rev = @part.increment_revision(@part.rev)
       end
       if params[:toolpath]
         file = params[:toolpath][:tempfile]
+
+	# Create directories if they do not exist already
+	
+	Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
+	Dir.mkdir("./uploads/#{@part.full_part_number}/toolpath") unless Dir.exist?("./uploads/#{@part.full_part_number}/toolpath")
+
         File.open("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode", 'wb') do |f|
           f.write(file.read)
         end
@@ -370,12 +388,12 @@ module CheesyParts
         email_body = <<-EOS.dedent
           Hello #{@user_edit.first_name},
 
-          Your account on Cheesy Parts has been approved.
+          Your account on Deep Blue Parts has been approved.
           You can log into the system at #{URL}.
 
           Cheers,
 
-          The Cheesy Parts Robot
+          Matt & Cole's hacky server app
         EOS
         send_email(@user_edit.email, "Account approved", email_body)
       end
@@ -435,13 +453,13 @@ module CheesyParts
       email_body = <<-EOS.dedent
         Hello,
 
-        This is a notification that #{user.first_name} #{user.last_name} has created an account on Cheesy
+        This is a notification that #{user.first_name} #{user.last_name} has created an account on Deep Blue
         Parts and it is disabled pending approval.
         Please visit the user control panel at #{URL}/users to take action.
 
         Cheers,
 
-        The Cheesy Parts Robot
+        Deep Blue Parts Server
       EOS
       send_email(CheesyCommon::Config.gmail_user, "Approval needed for #{user.email}", email_body)
       erb :register_confirmation
