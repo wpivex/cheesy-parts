@@ -19,6 +19,12 @@
         <option value=<%= key %><% if @user_edit.permission == key %> selected<% end %>><%= value %></option>
       <% end %>
     </select>
+    <label>Theme</label>
+    <select name="theme">
+      <% User::THEMES.each_pair do |key, value| %>
+        <option value=<%= key %><% if @user_edit.theme == key %> selected<% end %>><%= value %></option>
+      <% end %>
+    </select>
     <label>Enabled?</label>
     <input type="checkbox" name="enabled"<% if @user_edit.enabled == 1 %> checked<% end %> />
     <br /><br />

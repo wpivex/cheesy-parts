@@ -6,6 +6,7 @@ Sequel.migration do
       String :password, :null => false
       String :salt, :null => false
       String :permission, :null => false
+      String :theme, :null => false
     end
   end
 end

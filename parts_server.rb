@@ -331,6 +331,7 @@ module CheesyParts
       @user_edit.last_name = params[:last_name] if params[:last_name]
       @user_edit.set_password(params[:password]) if params[:password] && !params[:password].empty?
       @user_edit.permission = params[:permission] if params[:permission]
+      @user_edit.theme = params[:theme] if params[:theme]
       old_enabled = @user_edit.enabled
       @user_edit.enabled = (params[:enabled] == "on") ? 1 : 0
       if @user_edit.enabled == 1 && old_enabled == 0
