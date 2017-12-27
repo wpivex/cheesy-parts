@@ -16,6 +16,7 @@ require "models"
 
 module CheesyParts
   class Server < Sinatra::Base
+    # set :static, false
     use Rack::Session::Cookie, :key => "rack.session", :expire_after => 3600
 
     # Enforce authentication for all routes except login and user registration.
@@ -98,7 +99,9 @@ module CheesyParts
         redirect "/login"
       end
     end
-
+    get "/uploads/:path" do |path|
+          send_file "./uploads/#{path}", :path => path, :type => 'Application/octet-stream'
+    end
     get "/new_project" do
       require_permission(@user.can_administer?)
       erb :new_project
