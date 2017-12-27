@@ -1,0 +1,29 @@
+<%= erb :header %>
+
+<div class="container">
+  <h2>Edit Prefrences</h2>
+  <form action="" method="POST">
+    <label>E-mail</label>
+    <input type="text" name="email" value="<%= @user.email %>"/>
+    <label>First Name</label>
+    <input type="text" name="first_name" value="<%= @user.first_name %>"/>
+    <label>Last Name</label>
+    <input type="text" name="last_name" value="<%= @user.last_name %>"/>
+    <label>Change Password</label>
+    <input type="password" name="password" />
+    <label>Verify Password</label>
+    <input type="password" name="password2" />
+    <label>Theme</label>
+    <select name="theme">
+      <% User::THEMES.each_pair do |key, value| %>
+        <option value=<%= key %><% if @user.theme == key %> selected<% end %>><%= value %></option>
+      <% end %>
+    </select>
+    <label>
+      <input type="submit" class="btn btn-primary btn-medium" value="Save"
+          onclick="return verifyPasswordMatch(this.parentElement.parentElement);" />
+    </label>
+  </form>
+</div>
+
+<%= erb :footer %>
