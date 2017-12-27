@@ -1,4 +1,5 @@
 *.log
 *.pid
+*.swp
 vendor
 config.json

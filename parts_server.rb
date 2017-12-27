@@ -213,8 +213,9 @@ module CheesyParts
       part = Part.generate_number_and_create(project, params[:type], parent_part)
       part.name = params[:name].gsub("\"", "&quot;")
       part.status = "designing"
-      part.mfg_method = "manual"
-      part.finish = "none"
+      part.mfg_method = "Manual"
+      part.finish = "None"
+      part.rev = ""
       part.quantity = ""
       part.priority = 1
       part.drawing_created = 0

@@ -58,4 +58,16 @@ class Part < Sequel::Model
   def full_part_number
     "#{project.part_number_prefix}-#{type == "assembly" ? "A" : "P"}-%04d" % part_number
   end
+
+  def increment_revision(rev)
+    if rev == ""
+      return "A"
+    else
+      return rev.next
+    end
+  end
 end
+
+
+
+
