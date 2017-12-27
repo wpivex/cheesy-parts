@@ -15,20 +15,30 @@
         </option>
       <% end %>
     </select>
+    <label>Manufacturing Method</label>
+    <select name="mfg_method">
+      <% Part::MFG_MAP.each_pair do |key, value| %>
+        <option value="<%= key %>"<% if @part.mfg_method == key %> selected<% end %>>
+          <%= value %>
+        </option>
+      <% end %>
+    </select>
     <label>Notes</label>
      <textarea name="notes" rows="4"><%= @part.notes %></textarea>
-    <label>Source Material</label>
-    <input type="text" name="source_material" value="<%= @part.source_material %>" />
-    <label>Have Material?</b>
-      <input type="checkbox" name="have_material"<% if @part.have_material == 1 %>checked<% end %>/>
-    </label>
-    <label>Material Cut Length</label>
-    <input type="text" name="cut_length" value="<%= @part.cut_length %>" />
     <label>Quantity Required</label>
     <input type="text" name="quantity" value="<%= @part.quantity %>" />
     <label>Drawing Created?</b>
       <input type="checkbox" name="drawing_created"<% if @part.drawing_created == 1 %>checked<% end %>/>
     </label>
+    <label>Finish Type</label>
+    <select name="finish">
+      <% Part::FINISH_MAP.each_pair do |key, value| %>
+        <option value="<%= key %>"<% if @part.finish == key %> selected<% end %>>
+          <%= value %>
+        </option>
+      <% end %>
+    </select>
+ 
     <label>Priority</label>
     <select name="priority">
       <% Part::PRIORITY_MAP.each_pair do |key, value| %>

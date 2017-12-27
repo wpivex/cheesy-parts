@@ -12,19 +12,29 @@ class Part < Sequel::Model
 
   # The list of possible part statuses. Key: string stored in database, value: what is displayed to the user.
   STATUS_MAP = { "designing" => "Design in progress",
-                 "material" => "Material needs to be ordered",
+#                 "material" => "Material needs to be ordered",
                  "ordered" => "Waiting for materials",
                  "drawing" => "Needs drawing",
                  "ready" => "Ready to manufacture",
                  "manufacturing" => "Manufacturing in progress",
-                 "outsourced" => "Waiting for outsourced manufacturing",
-                 "welding" => "Waiting for welding",
-                 "scotchbrite" => "Waiting for Scotch-Brite",
-                 "anodize" => "Ready for anodize",
-                 "powder" => "Ready for powder coating",
-                 "coating" => "Waiting for coating",
+#                 "outsourced" => "Waiting for outsourced manufacturing",
+#                 "welding" => "Waiting for welding",
+#                 "scotchbrite" => "Waiting for Scotch-Brite",
+#                 "anodize" => "Ready for anodize",
+#                 "powder" => "Ready for powder coating",
+#                 "coating" => "Waiting for coating",
                  "assembly" => "Waiting for assembly",
                  "done" => "Done" }
+  MFG_MAP = { "manual" => "Manual/hand tools",
+		"milled" => "Milled",
+		"turned" => "Turned",
+		"printed" => "3D Printed",
+		"outsourced" => "Outsourced" }
+
+  FINISH_MAP = { "none" => "None",
+		 "powder_coated" => "Powder coated",
+		 "painted" => "Painted",
+		 "polished" => "Polished" }
 
   # Mapping of priority integer stored in database to what is displayed to the user.
   PRIORITY_MAP = { 0 => "High", 1 => "Normal", 2 => "Low" }
