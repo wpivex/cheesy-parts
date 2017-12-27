@@ -221,6 +221,9 @@ module CheesyParts
       part.drawing_created = 0
       part.save
       Dir.mkdir "./uploads/#{part.full_part_number}"
+      Dir.mkdir "./uploads/#{part.full_part_number}/toolpath"
+      Dir.mkdir "./uploads/#{part.full_part_number}/docs"
+      Dir.mkdir "./uploads/#{part.full_part_number}/drawing"
       redirect "/parts/#{part.id}"
     end
 
