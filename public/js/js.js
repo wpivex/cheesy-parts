@@ -16,16 +16,28 @@ function verifyFileTypes(form) {
       alert("Documentation file type is invalid")
       return false;
     }
+    if(form.documentation.files[0].size/1024/1024>5){
+      alert("Documentation must be less than 5MB")
+      return false;
+    }
   }
   else if(form.drawing.value!=""){
-    if(form.documentation.value.match(/\.([^\.]+)$/)[1] != "pdf"){
-        alert("Documentation file type is invalid")
+    if(form.drawing.value.match(/\.([^\.]+)$/)[1] != "pdf"){
+        alert("Drawing file type is invalid")
         return false;
+    }
+    if(form.drawing.files[0].size/1024/1024>5){
+      alert("Drawing must be less than 5MB")
+      return false;
     }
   }
   else if(form.toolpath.value!=""){
-      if(form.documentation.value.match(/\.([^\.]+)$/)[1] != "gcode"){
-        alert("Documentation file type is invalid")
+      if(form.toolpath.value.match(/\.([^\.]+)$/)[1] != "gcode"){
+        alert("Toolpath file type is invalid")
+        return false;
+      }
+      if(form.toolpath.files[0].size/1024/1024>5){
+        alert("Toolpath must be less than 5MB")
         return false;
       }
   }
