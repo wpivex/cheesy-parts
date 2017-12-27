@@ -39,8 +39,8 @@
     </tr>
     <tr><td><b>Notes</b></td><td><%= (@part.notes || "").gsub("\n", "<br />") %></td></tr>
     <% if @part.type == "part" %>
-      <tr><td><b>Manufacturing method</b></td><td><%= @part.mfg_method %></td></tr>
-      <tr><td><b>Finish type</b></td><td><%= @part.finish %></td></tr>
+      <tr><td><b>Manufacturing method</b></td><td><%= Part::MFG_MAP[@part.mfg_method] %></td></tr>
+      <tr><td><b>Finish type</b></td><td><%= Part::FINISH_MAP[@part.finish] %></td></tr>
     <% end %>
     <tr><td><b>Quantity required</b></td><td><%= @part.quantity %></td></tr>
     <tr><td><b>Drawing created?</b></td><td><%= (@part.drawing_created == 1) ? "Yes" : "No" %></td></tr>
