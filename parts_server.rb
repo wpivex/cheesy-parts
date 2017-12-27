@@ -11,7 +11,7 @@ require "json"
 require "pathological"
 require "pony"
 require "sinatra/base"
-
+require 'fileutils'
 require "models"
 
 module CheesyParts
@@ -219,6 +219,7 @@ module CheesyParts
       part.priority = 1
       part.drawing_created = 0
       part.save
+      Dir.mkdir "./uploads/#{part.full_part_number}"
       redirect "/parts/#{part.id}"
     end
 
@@ -286,6 +287,7 @@ module CheesyParts
       project_id = @part.project_id
       halt(400, "Invalid part.") if @part.nil?
       halt(400, "Can't delete assembly with existing children.") unless @part.child_parts.empty?
+      FileUtils.rm_rf("./uploads/#{@part.full_part_number}")
       @part.delete
       params[:referrer] = nil if params[:referrer] =~ /\/parts\/#{params[:id]}$/
       redirect params[:referrer] || "/projects/#{project_id}"
