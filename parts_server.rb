@@ -258,7 +258,25 @@ module CheesyParts
         halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
         @part.status = params[:status]
       end
-
+      if params[:documentation]
+        file = params[:documentation][:tempfile]
+        File.open("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf", 'wb') do |f|
+          f.write(file.read)
+        end
+      end
+      if params[:drawing]
+        file = params[:drawing][:tempfile]
+        File.open("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+@part.increment_revision(@part.rev)}.pdf", 'wb') do |f|
+          f.write(file.read)
+        end
+        @part.rev = @part.increment_revision(@part.rev)
+      end
+      if params[:toolpath]
+        file = params[:toolpath][:tempfile]
+        File.open("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode", 'wb') do |f|
+          f.write(file.read)
+        end
+      end
       if params[:mfg_method]
         halt(400, "Invalid manufacturing method.") unless Part::MFG_MAP.include?(params[:mfg_method])
         @part.mfg_method = params[:mfg_method]

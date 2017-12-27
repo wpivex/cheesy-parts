@@ -2,7 +2,7 @@
 
 <div class="container">
   <h2>Edit Part</h2>
-  <form action="" method="POST">
+  <form action="" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="referrer" value="<%= @referrer %>" />
     <label><span class="label label-info">Part Number</span> <%= @part.full_part_number %></label>
     <label>Part Name</label>
@@ -38,7 +38,7 @@
         </option>
       <% end %>
     </select>
- 
+
     <label>Priority</label>
     <select name="priority">
       <% Part::PRIORITY_MAP.each_pair do |key, value| %>
@@ -47,7 +47,13 @@
         </option>
       <% end %>
     </select>
-    <label><input type="submit" class="btn btn-primary btn-medium" value="Save Part" /></label>
+    <label>Attach Drawing</label>
+    <input type="file" name="drawing" accept=".pdf"/>
+    <label>Attach Documentation</label>
+    <input type="file" name="documentation" accept=".pdf"/>
+    <label>Attach Toolpath</label>
+    <input type="file" name="toolpath" accept=".gcode"/>
+    <label><input type="submit" class="btn btn-primary btn-medium" value="Save Part" onclick="return verifyFileTypes(this.parentElement.parentElement);"/></label>
   </form>
 </div>
 

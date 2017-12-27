@@ -10,7 +10,29 @@ function verifyPasswordMatch(form) {
     return false;
   }
 }
-
+function verifyFileTypes(form) {
+  if(form.documentation.value!=""){
+    if(form.documentation.value.match(/\.([^\.]+)$/)[1] != "pdf"){
+      alert("Documentation file type is invalid")
+      return false;
+    }
+  }
+  else if(form.drawing.value!=""){
+    if(form.documentation.value.match(/\.([^\.]+)$/)[1] != "pdf"){
+        alert("Documentation file type is invalid")
+        return false;
+    }
+  }
+  else if(form.toolpath.value!=""){
+      if(form.documentation.value.match(/\.([^\.]+)$/)[1] != "gcode"){
+        alert("Documentation file type is invalid")
+        return false;
+      }
+  }
+  else {
+    return true;
+  }
+}
 // Global variables to store current filter state for auto-refresh.
 var dashboardProjectId, dashboardStatus;
 
