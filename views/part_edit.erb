@@ -32,14 +32,16 @@
 	    <label>Drawing Created?</b>
 	      <input type="checkbox" name="drawing_created"<% if @part.drawing_created == 1 %>checked<% end %>/>
 	    </label>
+      <% if @user.can_administer? %>
 	    <label>Reset Current Revision</label>
 	    <select name="rev">
-	      <% ('A'..@part.rev).each do |rev_letter| %>
-		<option value="<%= rev_letter %>"<%if @part.rev == rev_letter %> selected<% end %>>
-			<%= rev_letter %>
-		</option>
-	      <% end %>
+        <% ('A'..@part.rev).each do |rev_letter| %>
+		      <option value="<%= rev_letter %>"<%if @part.rev == rev_letter %> selected<% end %>>
+        <%= rev_letter %>
+		    </option>
+        <% end %>
 	    </select>
+      <% end %>
 	    <label>Finish Type</label>
 	    <select name="finish">
 	      <% Part::FINISH_MAP.each_pair do |key, value| %>

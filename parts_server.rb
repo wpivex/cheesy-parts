@@ -304,7 +304,9 @@ module CheesyParts
       @part.quantity = params[:quantity] if params[:quantity]
       @part.drawing_created = (params[:drawing_created] == "on") ? 1 : 0
       @part.priority = params[:priority] if params[:priority]
-      @part.rev = params[:rev] if params[:rev]
+      if @user.can_administer?
+        @part.rev = params[:rev] if (params[:rev] && !params[:drawing])
+      end
       @part.save
       redirect params[:referrer] || "/parts/#{params[:id]}"
     end
