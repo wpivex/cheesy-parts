@@ -12,7 +12,7 @@ function verifyPasswordMatch(form) {
 }
 function verifyFileTypes(form) {
   if(form.documentation.value!=""){
-    if(form.documentation.value.match(/\.([^\.]+)$/)[1] != "pdf"){
+    if(form.documentation.value.match(/\.([^\.]+)$/)[1].toLowerCase() != "pdf"){
       alert("Documentation file type is invalid")
       return false;
     }
@@ -22,7 +22,7 @@ function verifyFileTypes(form) {
     }
   }
   else if(form.drawing.value!=""){
-    if(form.drawing.value.match(/\.([^\.]+)$/)[1] != "pdf"){
+    if(form.drawing.value.match(/\.([^\.]+)$/)[1].toLowerCase() != "pdf"){
         alert("Drawing file type is invalid")
         return false;
     }
@@ -32,7 +32,7 @@ function verifyFileTypes(form) {
     }
   }
   else if(form.toolpath.value!=""){
-      if(form.toolpath.value.match(/\.([^\.]+)$/)[1] != "gcode"){
+      if(form.toolpath.value.match(/\.([^\.]+)$/)[1].toLowerCase() != "gcode"){
         alert("Toolpath file type is invalid")
         return false;
       }
