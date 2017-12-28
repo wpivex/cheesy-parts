@@ -29,9 +29,6 @@
 	     <textarea name="notes" rows="4"><%= @part.notes %></textarea>
 	    <label>Quantity Required</label>
 	    <input type="text" name="quantity" value="<%= @part.quantity %>" />
-	    <label>Drawing Created?</b>
-	      <input type="checkbox" name="drawing_created"<% if @part.drawing_created == 1 %>checked<% end %>/>
-	    </label>
       <% if @user.can_administer? %>
 	    <label>Reset Current Revision</label>
 	    <select name="rev">

@@ -281,6 +281,7 @@ module CheesyParts
       	File.open("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf", 'wb') do |f|
           f.write(file.read)
         end
+        @part.drawing_created = 1
         @part.rev = @part.increment_revision(@part.rev)
         @part.status = "ready" unless @part.quantity == ""
       end
@@ -303,7 +304,6 @@ module CheesyParts
         @part.finish = params[:finish]
       end
       @part.notes = params[:notes] if params[:notes]
-      @part.drawing_created = (params[:drawing_created] == "on") ? 1 : 0
       @part.priority = params[:priority] if params[:priority]
       if @user.can_administer?
         @part.rev = params[:rev] if (params[:rev] && !params[:drawing])
