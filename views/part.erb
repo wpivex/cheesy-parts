@@ -1,26 +1,30 @@
 <%= erb :header %>
 
 <div class="container">
-  <% if @part.type == "part" && @user.can_edit? %>
-    <div class="pull-right" style="margin-top: 15px;">
-      <a href="/projects/<%= @part.project.id %>/new_part?type=part" class="btn btn-success btn-small">
-        <i class="icon-white icon-cog"></i> New Part
-      </a>
-      <a href="/projects/<%= @part.project.id %>/new_part?type=assembly" class="btn btn-success btn-small">
-        <i class="icon-white icon-th"></i> New Assembly
-      </a>
+  <div class="row">
+    <div class="span6 pull-left">
+	<h2><%= @part.type.capitalize %>: <%= @part.name %></h2>
     </div>
-  <% elsif @part.type == "assembly" && @user.can_edit? %>
-    <div class="pull-right" style="margin-top: 15px;">
-    <a href="/projects/<%= @part.project_id %>/new_part?type=part&parent_part_id=<%= @part.id %>"
-        class="btn btn-success btn-small"><i class="icon-white icon-cog"></i> New Part</a>
-    <a href="/projects/<%= @part.project_id %>/new_part?type=assembly&parent_part_id=<%= @part.id %>"
-        class="btn btn-success btn-small"><i class="icon-white icon-th"></i> New Assembly</a>
+    <div class="span6">	
+	  <% if @part.type == "part" && @user.can_edit? %>
+	    <div class="pull-right" style="margin-top: 15px;">
+	      <a href="/projects/<%= @part.project.id %>/new_part?type=part" class="btn btn-success btn-small">
+		<i class="icon-white icon-cog"></i> New Part
+	      </a>     
+	      <a href="/projects/<%= @part.project.id %>/new_part?type=assembly" class="btn btn-success btn-small">
+		<i class="icon-white icon-th"></i> New Assembly
+	      </a>
+	    </div>
+	  <% elsif @part.type == "assembly" && @user.can_edit? %>
+	    <div class="pull-right" style="margin-top: 15px;">
+	    <a href="/projects/<%= @part.project_id %>/new_part?type=part&parent_part_id=<%= @part.id %>"
+		class="btn btn-success btn-small"><i class="icon-white icon-cog"></i> New Part</a>
+	    <a href="/projects/<%= @part.project_id %>/new_part?type=assembly&parent_part_id=<%= @part.id %>"
+		class="btn btn-success btn-small"><i class="icon-white icon-th"></i> New Assembly</a>
+	    </div>
+	  <% end %>
     </div>
-  <% end %>
-
-  <h2><%= @part.type.capitalize %>: <%= @part.name %></h2>
-
+  </div>
   <div>
     <a href="/projects/<%= @part.project_id %>"><b><%= @part.project.name %></b></a>
     <% if @part.parent_part %>
@@ -74,31 +78,27 @@
 
       <tr><td><b>Priority</b></td><td><%= Part::PRIORITY_MAP[@part.priority] %></td></tr>
     </table>
+
+  <% if @user.can_edit? %>
+    <div class="row" style="margin-top: 0px;">
+	  <div class="span2">
+	      <a href="/parts/<%= @part.id %>/edit" class="btn btn-primary btn-small">
+		<i class="icon-white icon-pencil"></i> Edit this part
+	      </a>
+	  </div>
+	  <div class="span2">
+	      <a href="/parts/<%= @part.id %>/delete" class="btn btn-danger btn-small">
+		<i class="icon-white icon-trash"></i> Delete this part
+	      </a>
+	  </div>
   </div>
-<div class="span6">
-  <%if @part.drawing_created == 1 %>
-
-        <embed src="<%= "/uploads/" + @part.full_part_number + "/drawing/" + @part.full_part_number + "_" + @part.rev + ".pdf" %>" width="600" height="400" type='application/pdf'>
-
   <% end %>
-  <%if File.file?("./uploads/"+ @part.full_part_number + "/docs/" + @part.full_part_number + ".pdf") %>
-
-      <embed src="<%= "/uploads/" + @part.full_part_number + "/docs/" + @part.full_part_number + ".pdf" %>" width="600" height="400" type='application/pdf'>
-
+  </div>
+<div class="span8 pull-right">
+  <%if @part.drawing_created == 1 %>
+    <embed src="<%= "/uploads/" + @part.full_part_number + "/drawing/" + @part.full_part_number + "_" + @part.rev + ".pdf" %>" width="600" height="400" type='application/pdf'>
   <% end %>
 </div>
-  <% if @user.can_edit? %>
-    <div class="row">
-    <div class="pull-right" style="margin-top: 0px;">
-      <a href="/parts/<%= @part.id %>/edit" class="btn btn-primary btn-small">
-        <i class="icon-white icon-pencil"></i> Edit this part
-      </a>
-      <a href="/parts/<%= @part.id %>/delete" class="btn btn-danger btn-small">
-        <i class="icon-white icon-trash"></i> Delete this part
-      </a>
-    </div>
-  </div>
-  <% end %>
 
 
 <%= erb :footer %>
