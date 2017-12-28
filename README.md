@@ -9,13 +9,24 @@ Cheesy Parts is written in Ruby using the [Sinatra](http://sinatrarb.com) framew
 backing datastore. Development and production are run on UNIX (OS X and Ubuntu), so there are no guarantees
 it'll work on Windows, sorry.
 
+## Team 199 Specific Features
+
+Our fork differs from 254's in a few ways:
+
+1. Users can edit their own account settings, including passwords, names, and one of several stylesheets.
+1. Workflow, status options, and other attributes are generally optimized for our team's resources.
+1. Secure file upload is added so that members with edit privileges may upload drawings, documentation, and toolpath files. Each part and assembly carries revision letters that are automatically managed by the program. Lite version control is offered, with the ability to restore previous revisions if user is an administrator.
+1. Slack and Trello integeration is offered, since our team uses both tools for communication and task tracking.
+1. Additional dashboards and reports are offered for use.
+
 ## Development
 
 Prerequisites:
 
 * Ruby 1.9 (1.9.3-p286 is what we use in development and production)
 * [Bundler](http://gembundler.com)
-* MySQL
+* MySQL and MySQL Development Packages
+* g++
 
 To run Cheesy Parts locally:
 
