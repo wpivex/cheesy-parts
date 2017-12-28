@@ -261,6 +261,7 @@ module CheesyParts
         halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
         @part.status = params[:status]
       end
+      @part.quantity = params[:quantity] if params[:quantity]
       if params[:documentation]
         file = params[:documentation][:tempfile]
 	        # Create directories if they do not exist already
@@ -281,6 +282,7 @@ module CheesyParts
           f.write(file.read)
         end
         @part.rev = @part.increment_revision(@part.rev)
+        @part.status = "ready" unless @part.quantity == ""
       end
       if params[:toolpath]
         file = params[:toolpath][:tempfile]
@@ -301,7 +303,6 @@ module CheesyParts
         @part.finish = params[:finish]
       end
       @part.notes = params[:notes] if params[:notes]
-      @part.quantity = params[:quantity] if params[:quantity]
       @part.drawing_created = (params[:drawing_created] == "on") ? 1 : 0
       @part.priority = params[:priority] if params[:priority]
       if @user.can_administer?
