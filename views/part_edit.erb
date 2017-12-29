@@ -32,7 +32,7 @@
       <% if @user.can_administer? %>
 	    <label>Reset Current Revision</label>
 	    <select name="rev">
-        <% ('A'..@part.rev).each do |rev_letter| %>
+        <% (@part.rev_history.split(",")).each do |rev_letter| %>
 		      <option value="<%= rev_letter %>"<%if @part.rev == rev_letter %> selected<% end %>>
         <%= rev_letter %>
 		    </option>

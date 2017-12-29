@@ -60,7 +60,7 @@ class Part < Sequel::Model
   end
 
   def increment_revision(rev)
-    if rev == ""
+    if (rev == "") or (rev==nil)
       return "A"
     else
       return rev.next

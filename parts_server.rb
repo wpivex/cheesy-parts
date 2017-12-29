@@ -41,7 +41,7 @@ module CheesyParts
     def send_email(to, subject, body)
       # Run this asynchronously using EventMachine since it takes a couple of seconds.
       EM.defer do
-        Pony.mail(:from => "Cheesy Parts <#{CheesyCommon::Config.gmail_user}>", :to => to,
+        Pony.mail(:from => "Deep Blue Parts <#{CheesyCommon::Config.gmail_user}>", :to => to,
                   :subject => subject, :body => body, :via => :smtp,
                   :via_options => { :address => "smtp.gmail.com", :port => "587",
                                     :enable_starttls_auto => true,
@@ -219,6 +219,7 @@ module CheesyParts
       part.mfg_method = "Manual/Hand tools"
       part.finish = "None"
       part.rev = ""
+      part.rev_history = ""
       part.quantity = ""
       part.priority = 1
       part.drawing_created = 0
@@ -272,19 +273,26 @@ module CheesyParts
           f.write(file.read)
         end
       end
+
       if params[:drawing]
         file = params[:drawing][:tempfile]
       	# Create directories if they do not exist already
       	Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
       	Dir.mkdir("./uploads/#{@part.full_part_number}/drawing") unless Dir.exist?("./uploads/#{@part.full_part_number}/drawing")
-        File.delete("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf") if File.exist?("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf")
-      	File.open("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf", 'wb') do |f|
+        # File.delete("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf") if File.exist?("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf")
+      	File.open("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev_history.split(",").last)}.pdf", 'wb') do |f|
           f.write(file.read)
         end
-        @part.drawing_created = 1
-        @part.rev = @part.increment_revision(@part.rev)
+        @part.rev = @part.increment_revision(@part.rev_history.split(",").last)
+        if @part.rev == "A"
+	  @part.rev_history << @part.rev
+	else
+	  @part.rev_history << ",#{@part.rev}"
+	end
+	@part.drawing_created = 1
         @part.status = "ready" unless @part.quantity == ""
       end
+
       if params[:toolpath]
         file = params[:toolpath][:tempfile]
 	      # Create directories if they do not exist already
@@ -295,6 +303,7 @@ module CheesyParts
           f.write(file.read)
         end
       end
+
       if params[:mfg_method]
         halt(400, "Invalid manufacturing method.") unless Part::MFG_MAP.include?(params[:mfg_method])
         @part.mfg_method = params[:mfg_method]
@@ -305,7 +314,7 @@ module CheesyParts
       end
       @part.notes = params[:notes] if params[:notes]
       @part.priority = params[:priority] if params[:priority]
-      if @user.can_administer?
+      if @user.can_edit?
         @part.rev = params[:rev] if (params[:rev] && !params[:drawing])
       end
       @part.save
