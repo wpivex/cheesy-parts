@@ -174,7 +174,9 @@ module CheesyParts
     end
 
     get "/projects/:id/dashboard/parts" do
-      @status = params[:status] if Part::STATUS_MAP.has_key?(params[:status])
+      if Part::STATUS_MAP.has_key?(params[:status]) || params[:status]=="drawing"
+        @status = params[:status]
+      end
       erb :dashboard_parts
     end
 
@@ -243,7 +245,7 @@ module CheesyParts
     end
 
     get "/parts/:id/edit" do
-      require_permission(@user.can_edit?)
+      require_permission(@user.is_shoptech?)
 
       @part = Part[params[:id]]
       halt(400, "Invalid part.") if @part.nil?
@@ -252,65 +254,70 @@ module CheesyParts
     end
 
     post "/parts/:id/edit" do
-      require_permission(@user.can_edit?)
+      require_permission(@user.is_shoptech?)
 
       @part = Part[params[:id]]
       halt(400, "Invalid part.") if @part.nil?
       halt(400, "Missing part name.") if params[:name] && params[:name].empty?
-      @part.name = params[:name].gsub("\"", "&quot;") if params[:name]
-      if params[:status]
-        halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
-        @part.status = params[:status]
-      end
-      @part.quantity = params[:quantity] if params[:quantity]
-      if params[:documentation]
-        file = params[:documentation][:tempfile]
-	        # Create directories if they do not exist already
-      	Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
-      	Dir.mkdir("./uploads/#{@part.full_part_number}/docs") unless Dir.exist?("./uploads/#{@part.full_part_number}/docs")
-        File.delete("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf") if File.exist?("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf")
-      	File.open("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf", 'wb') do |f|
-          f.write(file.read)
+      if @user.can_edit?
+        @part.name = params[:name].gsub("\"", "&quot;") if params[:name]
+        if params[:status]
+          halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
+          @part.status = params[:status]
+        end
+        @part.quantity = params[:quantity] if params[:quantity]
+        if params[:documentation]
+          file = params[:documentation][:tempfile]
+            # Create directories if they do not exist already
+          Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
+          Dir.mkdir("./uploads/#{@part.full_part_number}/docs") unless Dir.exist?("./uploads/#{@part.full_part_number}/docs")
+          File.delete("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf") if File.exist?("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf")
+          File.open("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf", 'wb') do |f|
+            f.write(file.read)
+          end
+        end
+
+        if params[:drawing]
+          file = params[:drawing][:tempfile]
+          # Create directories if they do not exist already
+          Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
+          Dir.mkdir("./uploads/#{@part.full_part_number}/drawing") unless Dir.exist?("./uploads/#{@part.full_part_number}/drawing")
+          # File.delete("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf") if File.exist?("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf")
+          File.open("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev_history.split(",").last)}.pdf", 'wb') do |f|
+            f.write(file.read)
+          end
+          @part.rev = @part.increment_revision(@part.rev_history.split(",").last)
+          if @part.rev == "A"
+      @part.rev_history << @part.rev
+    else
+      @part.rev_history << ",#{@part.rev}"
+    end
+    @part.drawing_created = 1
+          @part.status = "ready" unless @part.quantity == ""
+        end
+
+        if params[:toolpath]
+          file = params[:toolpath][:tempfile]
+          # Create directories if they do not exist already
+          Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
+          Dir.mkdir("./uploads/#{@part.full_part_number}/toolpath") unless Dir.exist?("./uploads/#{@part.full_part_number}/toolpath")
+          File.delete("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode") if File.exist?("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode")
+          File.open("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode", 'wb') do |f|
+            f.write(file.read)
+          end
         end
       end
 
-      if params[:drawing]
-        file = params[:drawing][:tempfile]
-      	# Create directories if they do not exist already
-      	Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
-      	Dir.mkdir("./uploads/#{@part.full_part_number}/drawing") unless Dir.exist?("./uploads/#{@part.full_part_number}/drawing")
-        # File.delete("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf") if File.exist?("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf")
-      	File.open("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev_history.split(",").last)}.pdf", 'wb') do |f|
-          f.write(file.read)
+        if params[:mfg_method]
+          halt(400, "Invalid manufacturing method.") unless Part::MFG_MAP.include?(params[:mfg_method])
+          @part.mfg_method = params[:mfg_method]
         end
-        @part.rev = @part.increment_revision(@part.rev_history.split(",").last)
-        if @part.rev == "A"
-	  @part.rev_history << @part.rev
-	else
-	  @part.rev_history << ",#{@part.rev}"
-	end
-	@part.drawing_created = 1
-        @part.status = "ready" unless @part.quantity == ""
-      end
-
-      if params[:toolpath]
-        file = params[:toolpath][:tempfile]
-	      # Create directories if they do not exist already
-      	Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
-      	Dir.mkdir("./uploads/#{@part.full_part_number}/toolpath") unless Dir.exist?("./uploads/#{@part.full_part_number}/toolpath")
-        File.delete("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode") if File.exist?("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode")
-        File.open("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode", 'wb') do |f|
-          f.write(file.read)
+        if params[:finish]
+          halt(400, "Invalid finish type.") unless Part::FINISH_MAP.include?(params[:finish])
+          @part.finish = params[:finish]
         end
-      end
-
-      if params[:mfg_method]
-        halt(400, "Invalid manufacturing method.") unless Part::MFG_MAP.include?(params[:mfg_method])
-        @part.mfg_method = params[:mfg_method]
-      end
-      if params[:finish]
-        halt(400, "Invalid finish type.") unless Part::FINISH_MAP.include?(params[:finish])
-        @part.finish = params[:finish]
+        @part.quantity = params[:quantity] if params[:quantity]
+        @part.drawing_created = (params[:drawing_created] == "on") ? 1 : 0
       end
       @part.notes = params[:notes] if params[:notes]
       @part.priority = params[:priority] if params[:priority]

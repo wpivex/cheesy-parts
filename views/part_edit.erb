@@ -7,6 +7,7 @@
 	  <div clas="span6">
 	    <input type="hidden" name="referrer" value="<%= @referrer %>" />
 	    <label><span class="label label-info">Part Number</span> <%= @part.full_part_number %></label>
+      <% if @user.can_edit? %>
 	    <label>Part Name</label>
 	    <input type="text" name="name" value="<%= @part.name %>" />
 	    <label>Status</label>
@@ -25,29 +26,29 @@
 		</option>
 	      <% end %>
 	    </select>
+      <% end %>
 	    <label>Notes</label>
 	     <textarea name="notes" rows="4"><%= @part.notes %></textarea>
-	    <label>Quantity Required</label>
-	    <input type="text" name="quantity" value="<%= @part.quantity %>" />
-      <% if @user.can_administer? %>
-	    <label>Reset Current Revision</label>
-	    <select name="rev">
-        <% (@part.rev_history.split(",")).each do |rev_letter| %>
-		      <option value="<%= rev_letter %>"<%if @part.rev == rev_letter %> selected<% end %>>
-        <%= rev_letter %>
-		    </option>
-        <% end %>
-	    </select>
+      <% if @user.can_edit? %>
+        <label>Quantity Required</label>
+        <input type="text" name="quantity" value="<%= @part.quantity %>" />
+        <label>Reset Current Revision</label>
+        <select name="rev">
+          <% (@part.rev_history.split(",")).each do |rev_letter| %>
+            <option value="<%= rev_letter %>"<%if @part.rev == rev_letter %> selected<% end %>>
+          <%= rev_letter %>
+          </option>
+          <% end %>
+        </select>
+        <label>Finish Type</label>
+        <select name="finish">
+          <% Part::FINISH_MAP.each_pair do |key, value| %>
+      <option value="<%= key %>"<% if @part.finish == key %> selected<% end %>>
+        <%= value %>
+      </option>
+          <% end %>
+        </select>
       <% end %>
-	    <label>Finish Type</label>
-	    <select name="finish">
-	      <% Part::FINISH_MAP.each_pair do |key, value| %>
-		<option value="<%= key %>"<% if @part.finish == key %> selected<% end %>>
-		  <%= value %>
-		</option>
-	      <% end %>
-	    </select>
-
 	    <label>Priority</label>
 	    <select name="priority">
 	      <% Part::PRIORITY_MAP.each_pair do |key, value| %>
@@ -57,6 +58,7 @@
 	      <% end %>
 	    </select>
 	  </div>
+  <% if @user.can_edit? %>
 	<fieldset>
 	  <div class="span6">
 	    <label>Attach Drawing</label>
@@ -67,6 +69,7 @@
 	    <input type="file" name="toolpath" accept=".gcode"/>
 	  </div>
 	</fieldset>
+  <% end %>
 	</div><br>
 	<label><input type="submit" class="btn btn-primary btn-medium" value="Save Part" onclick="return verifyFileTypes(this.parentElement.parentElement);"/></label>
   </form>

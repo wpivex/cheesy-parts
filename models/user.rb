@@ -11,7 +11,7 @@ class User < Sequel::Model
   PBKDF2_ITERATIONS = 1000
   HASH_BYTES = 24
   SALT_BYTES = 24
-  PERMISSION_MAP = { "readonly" => "Read-only", "editor" => "Editor", "admin" => "Administrator" }
+  PERMISSION_MAP = { "readonly" => "Read-only", "shoptech" => "Shop Tech", "editor" => "Editor", "admin" => "Administrator" }
   THEMES = {"classic" => "Classic", "cyborg" => "Cyborg", "slate" => "Slate"}
   # Checks the given credentials against the database. Returns the user object on success and nil otherwise.
   def self.authenticate(email, password)
@@ -36,7 +36,9 @@ class User < Sequel::Model
   def can_edit?
     ["editor", "admin"].include?(self.permission)
   end
-
+  def is_shoptech?
+    ["editor", "admin", "shoptech"].include?(self.permission)
+  end
   def can_administer?
     self.permission == "admin"
   end

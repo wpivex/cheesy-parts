@@ -79,7 +79,7 @@
       <tr><td><b>Priority</b></td><td><%= Part::PRIORITY_MAP[@part.priority] %></td></tr>
     </table>
 
-  <% if @user.can_edit? %>
+  <% if @user.is_shoptech? %>
     <div class="row" style="margin-top: 0px;">
 	  <div class="span2">
 	      <a href="/parts/<%= @part.id %>/edit" class="btn btn-primary btn-small">
