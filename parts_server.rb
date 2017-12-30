@@ -231,7 +231,7 @@ module CheesyParts
     end
 
     get "/parts/:id/edit" do
-      require_permission(@user.can_edit?)
+      require_permission(@user.is_shoptech?)
 
       @part = Part[params[:id]]
       halt(400, "Invalid part.") if @part.nil?
@@ -240,29 +240,31 @@ module CheesyParts
     end
 
     post "/parts/:id/edit" do
-      require_permission(@user.can_edit?)
+      require_permission(@user.is_shoptech?)
 
       @part = Part[params[:id]]
       halt(400, "Invalid part.") if @part.nil?
       halt(400, "Missing part name.") if params[:name] && params[:name].empty?
-      @part.name = params[:name].gsub("\"", "&quot;") if params[:name]
-      if params[:status]
-        halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
-        @part.status = params[:status]
-      end
+      if @user.can_edit?
+        @part.name = params[:name].gsub("\"", "&quot;") if params[:name]
+        if params[:status]
+          halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
+          @part.status = params[:status]
+        end
 
-      if params[:mfg_method]
-        halt(400, "Invalid manufacturing method.") unless Part::MFG_MAP.include?(params[:mfg_method])
-        @part.mfg_method = params[:mfg_method]
+        if params[:mfg_method]
+          halt(400, "Invalid manufacturing method.") unless Part::MFG_MAP.include?(params[:mfg_method])
+          @part.mfg_method = params[:mfg_method]
+        end
+        if params[:finish]
+          halt(400, "Invalid finish type.") unless Part::FINISH_MAP.include?(params[:finish])
+          @part.finish = params[:finish]
+        end
+        @part.quantity = params[:quantity] if params[:quantity]
+        @part.drawing_created = (params[:drawing_created] == "on") ? 1 : 0
       end
-      if params[:finish]
-        halt(400, "Invalid finish type.") unless Part::FINISH_MAP.include?(params[:finish])
-        @part.finish = params[:finish]
-      end
-      @part.notes = params[:notes] if params[:notes]
-      @part.quantity = params[:quantity] if params[:quantity]
-      @part.drawing_created = (params[:drawing_created] == "on") ? 1 : 0
       @part.priority = params[:priority] if params[:priority]
+      @part.notes = params[:notes] if params[:notes]
       @part.save
       redirect params[:referrer] || "/parts/#{params[:id]}"
     end
