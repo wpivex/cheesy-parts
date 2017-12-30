@@ -86,3 +86,6 @@ label {
 .table th a {
   color: black;
 }
+.well li {
+  list-style: none;
+}

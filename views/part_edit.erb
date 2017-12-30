@@ -2,52 +2,73 @@
 
 <div class="container">
   <h2>Edit Part</h2>
-  <form action="" method="POST">
-    <input type="hidden" name="referrer" value="<%= @referrer %>" />
-    <label><span class="label label-info">Part Number</span> <%= @part.full_part_number %></label>
-    <label>Part Name</label>
-    <input type="text" name="name" value="<%= @part.name %>" />
-    <label>Status</label>
-    <select name="status">
-      <% Part::STATUS_MAP.each_pair do |key, value| %>
-        <option value="<%= key %>"<% if @part.status == key %> selected<% end %>>
-          <%= value %>
-        </option>
+    <form action="" method="POST" enctype="multipart/form-data">
+	<div class="row">
+	  <div clas="span6">
+	    <input type="hidden" name="referrer" value="<%= @referrer %>" />
+	    <label><span class="label label-info">Part Number</span> <%= @part.full_part_number %></label>
+	    <label>Part Name</label>
+	    <input type="text" name="name" value="<%= @part.name %>" />
+	    <label>Status</label>
+	    <select name="status">
+	      <% Part::STATUS_MAP.each_pair do |key, value| %>
+		<option value="<%= key %>"<% if @part.status == key %> selected<% end %>>
+		  <%= value %>
+		</option>
+	      <% end %>
+	    </select>
+	    <label>Manufacturing Method</label>
+	    <select name="mfg_method">
+	      <% Part::MFG_MAP.each_pair do |key, value| %>
+		<option value="<%= key %>"<% if @part.mfg_method == key %> selected<% end %>>
+		  <%= value %>
+		</option>
+	      <% end %>
+	    </select>
+	    <label>Notes</label>
+	     <textarea name="notes" rows="4"><%= @part.notes %></textarea>
+	    <label>Quantity Required</label>
+	    <input type="text" name="quantity" value="<%= @part.quantity %>" />
+      <% if @user.can_administer? %>
+	    <label>Reset Current Revision</label>
+	    <select name="rev">
+        <% (@part.rev_history.split(",")).each do |rev_letter| %>
+		      <option value="<%= rev_letter %>"<%if @part.rev == rev_letter %> selected<% end %>>
+        <%= rev_letter %>
+		    </option>
+        <% end %>
+	    </select>
       <% end %>
-    </select>
-    <label>Manufacturing Method</label>
-    <select name="mfg_method">
-      <% Part::MFG_MAP.each_pair do |key, value| %>
-        <option value="<%= key %>"<% if @part.mfg_method == key %> selected<% end %>>
-          <%= value %>
-        </option>
-      <% end %>
-    </select>
-    <label>Notes</label>
-     <textarea name="notes" rows="4"><%= @part.notes %></textarea>
-    <label>Quantity Required</label>
-    <input type="text" name="quantity" value="<%= @part.quantity %>" />
-    <label>Drawing Created?</b>
-      <input type="checkbox" name="drawing_created"<% if @part.drawing_created == 1 %>checked<% end %>/>
-    </label>
-    <label>Finish Type</label>
-    <select name="finish">
-      <% Part::FINISH_MAP.each_pair do |key, value| %>
-        <option value="<%= key %>"<% if @part.finish == key %> selected<% end %>>
-          <%= value %>
-        </option>
-      <% end %>
-    </select>
- 
-    <label>Priority</label>
-    <select name="priority">
-      <% Part::PRIORITY_MAP.each_pair do |key, value| %>
-        <option value="<%= key %>"<% if @part.priority == key %> selected<% end %>>
-          <%= value %>
-        </option>
-      <% end %>
-    </select>
-    <label><input type="submit" class="btn btn-primary btn-medium" value="Save Part" /></label>
+	    <label>Finish Type</label>
+	    <select name="finish">
+	      <% Part::FINISH_MAP.each_pair do |key, value| %>
+		<option value="<%= key %>"<% if @part.finish == key %> selected<% end %>>
+		  <%= value %>
+		</option>
+	      <% end %>
+	    </select>
+
+	    <label>Priority</label>
+	    <select name="priority">
+	      <% Part::PRIORITY_MAP.each_pair do |key, value| %>
+		<option value="<%= key %>"<% if @part.priority == key %> selected<% end %>>
+		  <%= value %>
+		</option>
+	      <% end %>
+	    </select>
+	  </div>
+	<fieldset>
+	  <div class="span6">
+	    <label>Attach Drawing</label>
+	    <input type="file" name="drawing" accept=".pdf"/>
+	    <label>Attach Documentation</label>
+	    <input type="file" name="documentation" accept=".pdf"/>
+	    <label>Attach Toolpath</label>
+	    <input type="file" name="toolpath" accept=".gcode"/>
+	  </div>
+	</fieldset>
+	</div><br>
+	<label><input type="submit" class="btn btn-primary btn-medium" value="Save Part" onclick="return verifyFileTypes(this.parentElement.parentElement);"/></label>
   </form>
 </div>
 
