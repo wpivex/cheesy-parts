@@ -6,6 +6,8 @@ Sequel.migration do
       add_column :quantity, String, :null => false
       add_column :priority, Integer, :null => false
       add_column :drawing_created, Integer, :null => false
+      add_column :rev, String, :null => false
+      add_column :rev_history, String, :null => false
     end
   end
 end

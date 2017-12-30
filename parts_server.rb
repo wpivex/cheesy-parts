@@ -11,11 +11,12 @@ require "json"
 require "pathological"
 require "pony"
 require "sinatra/base"
-
+require 'fileutils'
 require "models"
 
 module CheesyParts
   class Server < Sinatra::Base
+    # set :static, false
     use Rack::Session::Cookie, :key => "rack.session", :expire_after => 3600
 
     # Enforce authentication for all routes except login and user registration.
@@ -40,7 +41,7 @@ module CheesyParts
     def send_email(to, subject, body)
       # Run this asynchronously using EventMachine since it takes a couple of seconds.
       EM.defer do
-        Pony.mail(:from => "Cheesy Parts <#{CheesyCommon::Config.gmail_user}>", :to => to,
+        Pony.mail(:from => "Deep Blue Parts <#{CheesyCommon::Config.gmail_user}>", :to => to,
                   :subject => subject, :body => body, :via => :smtp,
                   :via_options => { :address => "smtp.gmail.com", :port => "587",
                                     :enable_starttls_auto => true,
@@ -98,7 +99,12 @@ module CheesyParts
         redirect "/login"
       end
     end
-
+    get "/uploads/*" do
+          path = params[:splat].first
+          type = 'application/pdf'
+          type = 'application/octet-stream' unless path.end_with? ".pdf"
+          send_file "./uploads/#{path}", :path => path, :type => type
+    end
     get "/new_project" do
       require_permission(@user.can_administer?)
       erb :new_project
@@ -212,12 +218,18 @@ module CheesyParts
       part = Part.generate_number_and_create(project, params[:type], parent_part)
       part.name = params[:name].gsub("\"", "&quot;")
       part.status = "designing"
-      part.mfg_method = "manual"
-      part.finish = "none"
+      part.mfg_method = "Manual/Hand tools"
+      part.finish = "None"
+      part.rev = ""
+      part.rev_history = ""
       part.quantity = ""
       part.priority = 1
       part.drawing_created = 0
       part.save
+#      Dir.mkdir "./uploads/#{part.full_part_number}"
+#      Dir.mkdir "./uploads/#{part.full_part_number}/toolpath"
+#      Dir.mkdir "./uploads/#{part.full_part_number}/docs"
+#      Dir.mkdir "./uploads/#{part.full_part_number}/drawing"
       redirect "/parts/#{part.id}"
     end
 
@@ -253,6 +265,48 @@ module CheesyParts
           halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
           @part.status = params[:status]
         end
+        @part.quantity = params[:quantity] if params[:quantity]
+        if params[:documentation]
+          file = params[:documentation][:tempfile]
+            # Create directories if they do not exist already
+          Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
+          Dir.mkdir("./uploads/#{@part.full_part_number}/docs") unless Dir.exist?("./uploads/#{@part.full_part_number}/docs")
+          File.delete("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf") if File.exist?("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf")
+          File.open("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf", 'wb') do |f|
+            f.write(file.read)
+          end
+        end
+
+        if params[:drawing]
+          file = params[:drawing][:tempfile]
+          # Create directories if they do not exist already
+          Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
+          Dir.mkdir("./uploads/#{@part.full_part_number}/drawing") unless Dir.exist?("./uploads/#{@part.full_part_number}/drawing")
+          # File.delete("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf") if File.exist?("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev)}.pdf")
+          File.open("./uploads/#{@part.full_part_number}/drawing/#{@part.full_part_number+"_"+@part.increment_revision(@part.rev_history.split(",").last)}.pdf", 'wb') do |f|
+            f.write(file.read)
+          end
+          @part.rev = @part.increment_revision(@part.rev_history.split(",").last)
+          if @part.rev == "A"
+      @part.rev_history << @part.rev
+    else
+      @part.rev_history << ",#{@part.rev}"
+    end
+    @part.drawing_created = 1
+          @part.status = "ready" unless @part.quantity == ""
+        end
+
+        if params[:toolpath]
+          file = params[:toolpath][:tempfile]
+          # Create directories if they do not exist already
+          Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
+          Dir.mkdir("./uploads/#{@part.full_part_number}/toolpath") unless Dir.exist?("./uploads/#{@part.full_part_number}/toolpath")
+          File.delete("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode") if File.exist?("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode")
+          File.open("./uploads/#{@part.full_part_number}/toolpath/#{@part.full_part_number}.gcode", 'wb') do |f|
+            f.write(file.read)
+          end
+        end
+      end
 
         if params[:mfg_method]
           halt(400, "Invalid manufacturing method.") unless Part::MFG_MAP.include?(params[:mfg_method])
@@ -265,8 +319,11 @@ module CheesyParts
         @part.quantity = params[:quantity] if params[:quantity]
         @part.drawing_created = (params[:drawing_created] == "on") ? 1 : 0
       end
-      @part.priority = params[:priority] if params[:priority]
       @part.notes = params[:notes] if params[:notes]
+      @part.priority = params[:priority] if params[:priority]
+      if @user.can_edit?
+        @part.rev = params[:rev] if (params[:rev] && !params[:drawing])
+      end
       @part.save
       redirect params[:referrer] || "/parts/#{params[:id]}"
     end
@@ -287,6 +344,7 @@ module CheesyParts
       project_id = @part.project_id
       halt(400, "Invalid part.") if @part.nil?
       halt(400, "Can't delete assembly with existing children.") unless @part.child_parts.empty?
+      FileUtils.rm_rf("./uploads/#{@part.full_part_number}")
       @part.delete
       params[:referrer] = nil if params[:referrer] =~ /\/parts\/#{params[:id]}$/
       redirect params[:referrer] || "/projects/#{project_id}"
@@ -347,12 +405,12 @@ module CheesyParts
         email_body = <<-EOS.dedent
           Hello #{@user_edit.first_name},
 
-          Your account on Cheesy Parts has been approved.
+          Your account on Deep Blue Parts has been approved.
           You can log into the system at #{URL}.
 
           Cheers,
 
-          The Cheesy Parts Robot
+          Matt & Cole's hacky server app
         EOS
         send_email(@user_edit.email, "Account approved", email_body)
       end
@@ -412,13 +470,13 @@ module CheesyParts
       email_body = <<-EOS.dedent
         Hello,
 
-        This is a notification that #{user.first_name} #{user.last_name} has created an account on Cheesy
+        This is a notification that #{user.first_name} #{user.last_name} has created an account on Deep Blue
         Parts and it is disabled pending approval.
         Please visit the user control panel at #{URL}/users to take action.
 
         Cheers,
 
-        The Cheesy Parts Robot
+        Deep Blue Parts Server
       EOS
       send_email(CheesyCommon::Config.gmail_user, "Approval needed for #{user.email}", email_body)
       erb :register_confirmation
