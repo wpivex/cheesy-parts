@@ -7,6 +7,7 @@
     <% Part::STATUS_MAP.each_pair do |key, value| %>
     <option value="<%= key %>"><%= value %></option>
     <% end %>
+    <option value="drawing">Needs drawing</option>
   </select>
   <h2><%= @project.name %></h2>
   <div id="dashboard-parts">

@@ -168,7 +168,9 @@ module CheesyParts
     end
 
     get "/projects/:id/dashboard/parts" do
-      @status = params[:status] if Part::STATUS_MAP.has_key?(params[:status])
+      if Part::STATUS_MAP.has_key?(params[:status]) || params[:status]=="drawing"
+        @status = params[:status]
+      end
       erb :dashboard_parts
     end
 
