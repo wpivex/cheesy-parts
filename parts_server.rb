@@ -288,11 +288,11 @@ module CheesyParts
           end
           @part.rev = @part.increment_revision(@part.rev_history.split(",").last)
           if @part.rev == "A"
-      @part.rev_history << @part.rev
-    else
-      @part.rev_history << ",#{@part.rev}"
-    end
-    @part.drawing_created = 1
+            @part.rev_history << @part.rev
+          else
+            @part.rev_history << ",#{@part.rev}"
+          end
+          @part.drawing_created = 1
           @part.status = "ready" unless @part.quantity == ""
         end
 
@@ -306,8 +306,6 @@ module CheesyParts
             f.write(file.read)
           end
         end
-      end
-
         if params[:mfg_method]
           halt(400, "Invalid manufacturing method.") unless Part::MFG_MAP.include?(params[:mfg_method])
           @part.mfg_method = params[:mfg_method]
@@ -316,13 +314,12 @@ module CheesyParts
           halt(400, "Invalid finish type.") unless Part::FINISH_MAP.include?(params[:finish])
           @part.finish = params[:finish]
         end
-        @part.quantity = params[:quantity] if params[:quantity]
-        @part.drawing_created = (params[:drawing_created] == "on") ? 1 : 0
-      end
-      @part.notes = params[:notes] if params[:notes]
-      @part.priority = params[:priority] if params[:priority]
-      if @user.can_edit?
         @part.rev = params[:rev] if (params[:rev] && !params[:drawing])
+      end
+      if @user.is_shoptech?
+        @part.quantity = params[:quantity] if params[:quantity]
+        @part.notes = params[:notes] if params[:notes]
+        @part.priority = params[:priority] if params[:priority]
       end
       @part.save
       redirect params[:referrer] || "/parts/#{params[:id]}"
