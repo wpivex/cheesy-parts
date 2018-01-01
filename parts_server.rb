@@ -13,16 +13,24 @@ require "pony"
 require "sinatra/base"
 require 'fileutils'
 require "models"
+require "slack-ruby-client"
 
 module CheesyParts
   class Server < Sinatra::Base
     # set :static, false
     use Rack::Session::Cookie, :key => "rack.session", :expire_after => 3600
 
-    # Enforce authentication for all routes except login and user registration.
     before do
+      # Enforce authentication for all routes except login and user registration.
       @user = User[session[:user_id]]
       authenticate! unless ["/login", "/register"].include?(request.path)
+
+      # Initialize slack bot
+      Slack.configure do |config|
+	config.token = CheesyCommon::Config.slack_api_token
+      end
+      $slack_bot = Slack::Web::Client.new
+      $slack_bot.auth_test
     end
 
     def authenticate!
@@ -226,10 +234,6 @@ module CheesyParts
       part.priority = 1
       part.drawing_created = 0
       part.save
-#      Dir.mkdir "./uploads/#{part.full_part_number}"
-#      Dir.mkdir "./uploads/#{part.full_part_number}/toolpath"
-#      Dir.mkdir "./uploads/#{part.full_part_number}/docs"
-#      Dir.mkdir "./uploads/#{part.full_part_number}/drawing"
       redirect "/parts/#{part.id}"
     end
 
@@ -293,8 +297,42 @@ module CheesyParts
             @part.rev_history << ",#{@part.rev}"
           end
           @part.drawing_created = 1
-          @part.status = "ready" unless @part.quantity == ""
-        end
+          unless @part.quantity == ""
+	    $slack_bot.chat_postMessage(channel: 'parts-notif', 
+			as_user: true, 
+			attachments: [
+					{
+					    "fallback": "New part ready for manufacture.",
+					    "color": "#36a64f",
+					    "pretext": "New part ready for manufacture!",
+					    "title": "#{@part.full_part_number} (#{@part.name})",
+					    "title_link": "#{CheesyCommon::Config.base_address}/parts/#{@part.id}",
+					    "fields": [
+							{
+						    	  "title": "Parent assembly",
+							  "value": "#{@part.parent_part.full_part_number} (#{@part.parent_part.name})",
+						    	  "short": false
+						        },
+							{
+						    	  "title": "Quantity",
+							  "value": "#{@part.quantity}",
+						    	  "short": true
+							},
+							{
+						    	  "title": "Revision",
+							  "value": "#{@part.rev}",
+						    	  "short": true
+						        }
+					              ],
+					    "footer": "Deep Blue Parts",
+					    "footer_icon": "http://carlmontrobotics.org/images/ico/TabIcon.png",
+					    "ts": "#{Time.now.to_i}"
+					}
+				    ]) unless @part.status == "ready"
+	  
+	    @part.status = "ready"
+          end
+	end
 
         if params[:toolpath]
           file = params[:toolpath][:tempfile]
