@@ -344,31 +344,33 @@ module CheesyParts
       		trello_bot = Trello::Member.find("partsbot")
 		fab = trello_bot.boards[0]
 		list = fab.lists.first # MAKE SURE THE BOARD HAS A LIST
-		card = Trello::Card.create(name: "Fabricate #{@part.full_part_number} (#{@part.name})",
-					   desc: "Parts DB link: #{CheesyCommon::Config.base_address}/parts/#{@part.id}",
-					   list_id: list.id)	
-		@part.trello_link = card.url
-		checklist = Trello::Checklist.create(name: "Fabrication Checklist",
-						     board_id: fab.id,
-						     card_id: card.id)
-		checklist_items = ["Verify that the current revision number matches the drawing",
-				   "Read the dimension drawing, bring any issues to DESIGN",
-				   "Update parts DB status to Manufacturing in progress",
-				   "Identify tools/resources needed for fabrication of part",
-				   "Ensure proper usage and safety procedures are known and followed",
-				   "Ensure that work is done over a whiteboard or plywood",
-				   "Check layout",
-				   "Verify layout with student lead or mentor",
-				   "Fabricate part",
-				   "Inspect part, note any dimensions which are out of tolerance",
-				   "Bring part to QA for inspection and sign-off",
-				   "Serialize the part using an engraver (or pen, if specified)",
-				   "Clean the part and prepare it for finishing, if specified",
-				   "Bag and file the part in the appropriate place",
-				   "File the completed drawing (and traveler, if used) in the appropriate binder",
-				   "Update trello, parts database, and your task lead"]
-		checklist_items.each do |entry|
-			checklist.add_item(entry)
+		@part.quantity.to_i.times do |serial|	
+			card = Trello::Card.create(name: "Fabricate #{@part.full_part_number}-#{serial+1} (#{@part.name})",
+						   desc: "Parts DB link: #{CheesyCommon::Config.base_address}/parts/#{@part.id}",
+						   list_id: list.id)	
+			@part.trello_link <<  (card.url+"\n")
+			checklist = Trello::Checklist.create(name: "Fabrication Checklist",
+							     board_id: fab.id,
+							     card_id: card.id)
+			checklist_items = ["Verify that the current revision number matches the drawing",
+					   "Read the dimension drawing, bring any issues to DESIGN",
+					   "Update parts DB status to Manufacturing in progress",
+					   "Identify tools/resources needed for fabrication of part",
+					   "Ensure proper usage and safety procedures are known and followed",
+					   "Ensure that work is done over a whiteboard or plywood",
+					   "Check layout",
+					   "Verify layout with student lead or mentor",
+					   "Fabricate part",
+					   "Inspect part, note any dimensions which are out of tolerance",
+					   "Bring part to QA for inspection and sign-off",
+					   "Serialize the part using an engraver (or pen, if specified)",
+					   "Clean the part and prepare it for finishing, if specified",
+					   "Bag and file the part in the appropriate place",
+					   "File the completed drawing (and traveler, if used) in the appropriate binder",
+					   "Update trello, parts database, and your task lead"]
+			checklist_items.each do |entry|
+				checklist.add_item(entry)
+			end
 		end
 	    end
 	    @part.status = "ready"

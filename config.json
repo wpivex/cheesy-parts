@@ -1,0 +1,24 @@
+{
+  "global": {
+    "db_host": "localhost",
+    "db_user": "",
+    "db_database": "",
+    "port": 9000,
+    "base_address": "http://parts.team199.org",
+    "gmail_user": "deepbluepartsbot@gmail.com",
+    "enable_wordpress_auth": false,
+    "slack_api_token": "",
+    "trello_public": "",
+    "trello_member": ""
+    },
+  "dev": {
+    "db_password": "",
+    "gmail_password": "",
+    "members_url": ""
+  },
+  "prod": {
+    "db_password": "",
+    "gmail_password": "",
+    "members_url": ""
+  }
+}
