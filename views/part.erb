@@ -74,6 +74,10 @@
   	<tr><td><b>Toolpath Link</b></td><td><a href="<%= "/uploads/" + @part.full_part_number + "/toolpath/" + @part.full_part_number + ".gcode" %>">Link</a></td></tr>
       <% end %>
 
+      <% unless @part.trello_link == "" %>
+	<tr><td><b>Trello Link</b></td>><td><a href=" <%= "#{@part.trello_link}" %>">Link</a></td></tr>
+      <% end %>
+
 
 
       <tr><td><b>Priority</b></td><td><%= Part::PRIORITY_MAP[@part.priority] %></td></tr>
