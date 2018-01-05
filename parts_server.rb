@@ -349,7 +349,7 @@ module CheesyParts
 				card = Trello::Card.create(name: "Fabricate #{@part.full_part_number}-#{serial+1} (#{@part.name})",
 							   desc: "Parts DB link: #{CheesyCommon::Config.base_address}/parts/#{@part.id}",
 							   list_id: list.id)	
-				@part.trello_link <<  (card.url+"\n")
+				@part.trello_link <<  ( card.url+ "," )
 				checklist = Trello::Checklist.create(name: "Fabrication Checklist",
 								     board_id: fab.id,
 								     card_id: card.id)
@@ -372,6 +372,7 @@ module CheesyParts
 				checklist_items.each do |entry|
 					checklist.add_item(entry)
 				end
+				@part.save
 			end
 			@part.save
 		}
@@ -455,7 +456,7 @@ module CheesyParts
       halt(400, "Invalid permission.") unless User::PERMISSION_MAP.include?(params[:permission])
       user = User.new(:email => params[:email], :first_name => params[:first_name],
                       :last_name => params[:last_name], :permission => params[:permission],
-                      :enabled => (params[:enabled] == "on") ? 1 : 0)
+                      :theme => "classic", :enabled => (params[:enabled] == "on") ? 1 : 0)
       user.set_password(params[:password])
       user.save
       redirect "/users"
@@ -487,7 +488,7 @@ module CheesyParts
           Hello #{@user_edit.first_name},
 
           Your account on Deep Blue Parts has been approved.
-          You can log into the system at #{URL}.
+          You can log into the system at #{CheesyCommon::Config.base_address}.
 
           Cheers,
 
@@ -545,7 +546,7 @@ module CheesyParts
       halt(400, "Missing password.") if params[:password].nil? || params[:password].empty?
       user = User.new(:email => params[:email], :first_name => params[:first_name],
                       :last_name => params[:last_name], :permission => "readonly",
-                      :enabled => 0)
+                      :enabled => 0, :theme => "")
       user.set_password(params[:password])
       user.save
       email_body = <<-EOS.dedent
@@ -553,7 +554,7 @@ module CheesyParts
 
         This is a notification that #{user.first_name} #{user.last_name} has created an account on Deep Blue
         Parts and it is disabled pending approval.
-        Please visit the user control panel at #{URL}/users to take action.
+        Please visit the user control panel at #{CheesyCommon::Config.base_address}
 
         Cheers,
 
