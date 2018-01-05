@@ -4,12 +4,13 @@
     "db_user": "",
     "db_database": "",
     "port": 9000,
-    "base_address": "http://parts.team199.org",
-    "gmail_user": "deepbluepartsbot@gmail.com",
+    "base_address": "http://localhost:9000",
+    "gmail_user": "",
     "enable_wordpress_auth": false,
     "slack_api_token": "",
     "trello_public": "",
-    "trello_member": ""
+    "trello_member": "",
+    "enable_ordering": false
     },
   "dev": {
     "db_password": "",
