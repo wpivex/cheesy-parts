@@ -1,5 +1,6 @@
 <%= erb :header %>
 
+<% if CheesyCommon::Config.enable_ordering %>
 <div class="container">
   <div class="row">
     <div class="span2">
@@ -25,5 +26,5 @@
   <% end %>
   </div>
 </div>
-
+<% end %>
 <%= erb :footer %>
