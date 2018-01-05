@@ -492,7 +492,7 @@ module CheesyParts
 
           Cheers,
 
-          Matt & Cole's hacky server app
+          Your Friendly Neighborhood Deep Blue Parts Bot
         EOS
         send_email(@user_edit.email, "Account approved", email_body)
       end
