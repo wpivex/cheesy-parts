@@ -79,8 +79,8 @@
       <% unless @part.trello_link == "" %>
 	<tr><td><b>Trello Link</b></td>
 		<td><ol>
-			<% @part.trello_link.split(",").each do |link| %>
-				<li><a href=" <%= link %>">Link</a></li>
+			<% @part.trello_link.split(",").each do |url| %>
+				<li><a href="<%= url %>" target="_blank">Link</a></li>
 			<% end %>
 		</ol></td>
 	</tr>

@@ -19,8 +19,17 @@ require "trello"
 module CheesyParts
   class Server < Sinatra::Base
     # set :static, false
+    def self.run!
+	super do |server|
+	   server.ssl=true
+           server.ssl_options = {
+             :cert_chain_file  => File.dirname(__FILE__) + "/fullchain.pem",
+             :private_key_file => File.dirname(__FILE__) + "/privkey.pem",
+             :verify_peer      => false
+           }
+        end
+    end
     use Rack::Session::Cookie, :key => "rack.session", :expire_after => 3600
-
     before do
       # Enforce authentication for all routes except login and user registration.
       @user = User[session[:user_id]]
@@ -341,15 +350,16 @@ module CheesyParts
 	  
 	    # Post to Trello and save link
 	    if (@part.trello_link == "")
-		Thread.new {
+		EM.defer do 
 			trello_bot = Trello::Member.find("partsbot")
 			fab = trello_bot.boards[0]
 			list = fab.lists.first # MAKE SURE THE BOARD HAS A LIST
+			
 			@part.quantity.to_i.times do |serial|	
 				card = Trello::Card.create(name: "Fabricate #{@part.full_part_number}-#{serial+1} (#{@part.name})",
 							   desc: "Parts DB link: #{CheesyCommon::Config.base_address}/parts/#{@part.id}",
 							   list_id: list.id)	
-				@part.trello_link <<  ( card.url+ "," )
+				@part.trello_link << (card.url + ",")
 				checklist = Trello::Checklist.create(name: "Fabrication Checklist",
 								     board_id: fab.id,
 								     card_id: card.id)
@@ -372,10 +382,9 @@ module CheesyParts
 				checklist_items.each do |entry|
 					checklist.add_item(entry)
 				end
-				@part.save
 			end
-			@part.save
-		}
+		@part.save
+		end
 	    end
 	    @part.status = "ready"
           end

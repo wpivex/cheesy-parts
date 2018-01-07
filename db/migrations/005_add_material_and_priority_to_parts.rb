@@ -8,7 +8,7 @@ Sequel.migration do
       add_column :drawing_created, Integer, :null => false
       add_column :rev, String, :null => false
       add_column :rev_history, String, :null => false
-      add_column :trello_link, String, :null => false
+      add_column :trello_link, String, size: 5000, :null => false
     end
   end
 end
