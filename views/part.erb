@@ -46,7 +46,7 @@
         <td><b>Project</b></td>
         <td><a href="/projects/<%= @part.project_id %>"><%= @part.project.name %></a></td>
       </tr>
-      <tr><td><b>Part Number</b></td><td><%= @part.full_part_number %></td></tr>
+      <tr><td ><b>Part Number</b></td><td class="js-copytextarea"><%= @part.full_part_number %> <button class="btn btn-mini btn-success js-textareacopybtn"><i class="icon-white icon-list-alt"></i></button></td></tr>
       <tr>
         <td><b>Status</b></td>
         <td>

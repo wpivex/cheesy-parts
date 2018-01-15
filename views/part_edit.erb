@@ -10,6 +10,7 @@
       <% if @user.can_edit? %>
 	    <label>Part Name</label>
 	    <input type="text" name="name" value="<%= @part.name %>" />
+      <% end %>
 	    <label>Status</label>
 	    <select name="status">
 	      <% Part::STATUS_MAP.each_pair do |key, value| %>
@@ -18,6 +19,7 @@
 		</option>
 	      <% end %>
 	    </select>
+      <% if @user.can_edit? %>
 	    <label>Manufacturing Method</label>
 	    <select name="mfg_method">
 	      <% Part::MFG_MAP.each_pair do |key, value| %>

@@ -281,12 +281,14 @@ module CheesyParts
       @part = Part[params[:id]]
       halt(400, "Invalid part.") if @part.nil?
       halt(400, "Missing part name.") if params[:name] && params[:name].empty?
-      if @user.can_edit?
-        @part.name = params[:name].gsub("\"", "&quot;") if params[:name]
+      
         if params[:status]
           halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
           @part.status = params[:status]
         end
+	
+if @user.can_edit?
+        @part.name = params[:name].gsub("\"", "&quot;") if params[:name]
         @part.quantity = params[:quantity] if params[:quantity]
         if params[:documentation]
           file = params[:documentation][:tempfile]
@@ -316,7 +318,7 @@ module CheesyParts
           end
           @part.drawing_created = 1
           unless @part.quantity == ""
-	    $slack_bot.chat_postMessage(channel: 'parts-notif', 
+	    $slack_bot.chat_postMessage(channel: 'parts-notifications', 
 			as_user: true, 
 			attachments: [
 					{
@@ -363,9 +365,9 @@ module CheesyParts
 				checklist = Trello::Checklist.create(name: "Fabrication Checklist",
 								     board_id: fab.id,
 								     card_id: card.id)
-				checklist_items = ["Verify that the current revision number matches the drawing",
+				checklist_items = ["Verify that the current revision letter matches the drawing",
 						   "Read the dimension drawing, bring any issues to DESIGN",
-						   "Update parts DB status to Manufacturing in progress",
+						   "Update parts DB status to Manufacturing in Progress",
 						   "Identify tools/resources needed for fabrication of part",
 						   "Ensure proper usage and safety procedures are known and followed",
 						   "Ensure that work is done over a whiteboard or plywood",
