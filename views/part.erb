@@ -5,12 +5,12 @@
     <div class="span6 pull-left">
 	<h2><%= @part.type.capitalize %>: <%= @part.name %></h2>
     </div>
-    <div class="span6">	
+    <div class="span6">
 	  <% if @part.type == "part" && @user.can_edit? %>
 	    <div class="pull-right" style="margin-top: 15px;">
 	      <a href="/projects/<%= @part.project.id %>/new_part?type=part" class="btn btn-success btn-small">
 		<i class="icon-white icon-cog"></i> New Part
-	      </a>     
+	      </a>
 	      <a href="/projects/<%= @part.project.id %>/new_part?type=assembly" class="btn btn-success btn-small">
 		<i class="icon-white icon-th"></i> New Assembly
 	      </a>
@@ -75,7 +75,7 @@
       <% end %>
 
       <tr><td><b>Priority</b></td><td><%= Part::PRIORITY_MAP[@part.priority] %></td></tr>
-      
+
       <% unless @part.trello_link == "" %>
 	<tr><td><b>Trello Link</b></td>
 		<td><ol>
@@ -101,6 +101,15 @@
 	      </a>
 	  </div>
   </div>
+  <% end %>
+  <% if @user.can_edit? %>
+    <div class="row" style="margin-top: 10px;">
+  	  <div class="span2">
+  	      <a href="/parts/<%= @part.id %>/release" class="btn btn-success btn-small">
+  		<i class="icon-white icon-ok"></i> Release Part
+  	      </a>
+  	  </div>
+    </div>
   <% end %>
   </div>
 <div class="span8 pull-right">

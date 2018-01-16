@@ -20,34 +20,33 @@ module CheesyParts
   class Server < Sinatra::Base
     # set :static, false
     def self.run!
-	super do |server|
-	   server.ssl=true
-           server.ssl_options = {
-             :cert_chain_file  => File.dirname(__FILE__) + "/fullchain.pem",
-             :private_key_file => File.dirname(__FILE__) + "/privkey.pem",
-             :verify_peer      => false
-           }
+    	super do |server|
+    	   server.ssl=true
+               server.ssl_options = {
+                 :cert_chain_file  => File.dirname(__FILE__) + "/fullchain.pem",
+                 :private_key_file => File.dirname(__FILE__) + "/privkey.pem",
+                 :verify_peer      => false
+               }
+            end
         end
-    end
-    use Rack::Session::Cookie, :key => "rack.session", :expire_after => 3600
-    before do
-      # Enforce authentication for all routes except login and user registration.
-      @user = User[session[:user_id]]
-      authenticate! unless ["/login", "/register"].include?(request.path)
+        use Rack::Session::Cookie, :key => "rack.session", :expire_after => 3600
+        before do
+          # Enforce authentication for all routes except login and user registration.
+          @user = User[session[:user_id]]
+          authenticate! unless ["/login", "/register"].include?(request.path)
 
-      # Initialize slack bot
-      Slack.configure do |config|
-	config.token = CheesyCommon::Config.slack_api_token
+          # Initialize slack bot
+          Slack.configure do |config|
+    	  config.token = CheesyCommon::Config.slack_api_token
+          end
+          $slack_bot = Slack::Web::Client.new
+          $slack_bot.auth_test
+
+          # Initialize Trello bot
+          Trello.configure do |config|
+    	  config.developer_public_key = CheesyCommon::Config.trello_public
+    	  config.member_token = CheesyCommon::Config.trello_member
       end
-      $slack_bot = Slack::Web::Client.new
-      $slack_bot.auth_test
-
-      # Initialize Trello bot
-      Trello.configure do |config|
-	config.developer_public_key = CheesyCommon::Config.trello_public
-	config.member_token = CheesyCommon::Config.trello_member
-      end
-
     end
 
     def authenticate!
@@ -281,18 +280,19 @@ module CheesyParts
       @part = Part[params[:id]]
       halt(400, "Invalid part.") if @part.nil?
       halt(400, "Missing part name.") if params[:name] && params[:name].empty?
-      
-        if params[:status]
-          halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
-          @part.status = params[:status]
-        end
-	
-if @user.can_edit?
+
+      if params[:status]
+        halt(400, "Invalid status.") unless Part::STATUS_MAP.include?(params[:status])
+        @part.status = params[:status]
+      end
+
+      if @user.can_edit?
         @part.name = params[:name].gsub("\"", "&quot;") if params[:name]
         @part.quantity = params[:quantity] if params[:quantity]
+
         if params[:documentation]
           file = params[:documentation][:tempfile]
-            # Create directories if they do not exist already
+          # Create directories if they do not exist already
           Dir.mkdir("./uploads/#{@part.full_part_number}") unless Dir.exist?("./uploads/#{@part.full_part_number}")
           Dir.mkdir("./uploads/#{@part.full_part_number}/docs") unless Dir.exist?("./uploads/#{@part.full_part_number}/docs")
           File.delete("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf") if File.exist?("./uploads/#{@part.full_part_number}/docs/#{@part.full_part_number}.pdf")
@@ -317,80 +317,7 @@ if @user.can_edit?
             @part.rev_history << ",#{@part.rev}"
           end
           @part.drawing_created = 1
-          unless @part.quantity == ""
-	    $slack_bot.chat_postMessage(channel: 'parts-notifications', 
-			as_user: true, 
-			attachments: [
-					{
-					    "fallback": "New part ready for manufacture.",
-					    "color": "#36a64f",
-					    "pretext": "New part ready for manufacture!",
-					    "title": "#{@part.full_part_number} (#{@part.name})",
-					    "title_link": "#{CheesyCommon::Config.base_address}/parts/#{@part.id}",
-					    "fields": [
-							{
-						    	  "title": "Parent assembly",
-							  "value": "#{@part.parent_part.full_part_number} (#{@part.parent_part.name})",
-						    	  "short": false
-						        },
-							{
-						    	  "title": "Quantity",
-							  "value": "#{@part.quantity}",
-						    	  "short": true
-							},
-							{
-						    	  "title": "Revision",
-							  "value": "#{@part.rev}",
-						    	  "short": true
-						        }
-					              ],
-					    "footer": "Deep Blue Parts",
-					    "footer_icon": "http://carlmontrobotics.org/images/ico/TabIcon.png",
-					    "ts": "#{Time.now.to_i}"
-					}
-				    ]) unless @part.status == "ready"
-	  
-	    # Post to Trello and save link
-	    if (@part.trello_link == "")
-		EM.defer do 
-			trello_bot = Trello::Member.find("partsbot")
-			fab = trello_bot.boards[0]
-			list = fab.lists.first # MAKE SURE THE BOARD HAS A LIST
-			
-			@part.quantity.to_i.times do |serial|	
-				card = Trello::Card.create(name: "Fabricate #{@part.full_part_number}-#{serial+1} (#{@part.name})",
-							   desc: "Parts DB link: #{CheesyCommon::Config.base_address}/parts/#{@part.id}",
-							   list_id: list.id)	
-				@part.trello_link << (card.url + ",")
-				checklist = Trello::Checklist.create(name: "Fabrication Checklist",
-								     board_id: fab.id,
-								     card_id: card.id)
-				checklist_items = ["Verify that the current revision letter matches the drawing",
-						   "Read the dimension drawing, bring any issues to DESIGN",
-						   "Update parts DB status to Manufacturing in Progress",
-						   "Identify tools/resources needed for fabrication of part",
-						   "Ensure proper usage and safety procedures are known and followed",
-						   "Ensure that work is done over a whiteboard or plywood",
-						   "Check layout",
-						   "Verify layout with student lead or mentor",
-						   "Fabricate part",
-						   "Inspect part, note any dimensions which are out of tolerance",
-						   "Bring part to QA for inspection and sign-off",
-						   "Serialize the part using an engraver (or pen, if specified)",
-						   "Clean the part and prepare it for finishing, if specified",
-						   "Bag and file the part in the appropriate place",
-						   "File the completed drawing (and traveler, if used) in the appropriate binder",
-						   "Update trello, parts database, and your task lead"]
-				checklist_items.each do |entry|
-					checklist.add_item(entry)
-				end
-			end
-		@part.save
-		end
-	    end
-	    @part.status = "ready"
-          end
-	end
+		    end
 
         if params[:toolpath]
           file = params[:toolpath][:tempfile]
@@ -402,6 +329,7 @@ if @user.can_edit?
             f.write(file.read)
           end
         end
+
         if params[:mfg_method]
           halt(400, "Invalid manufacturing method.") unless Part::MFG_MAP.include?(params[:mfg_method])
           @part.mfg_method = params[:mfg_method]
@@ -419,6 +347,104 @@ if @user.can_edit?
       end
       @part.save
       redirect params[:referrer] || "/parts/#{params[:id]}"
+    end
+
+    get "/parts/:id/release" do
+      require_permission(@user.can_edit?)
+
+      @part = Part[params[:id]]
+      halt(400, "Invalid part.") if @part.nil?
+      @referrer = request.referrer
+      erb :part_release
+    end
+
+    post "/parts/:id/release" do
+      require_permission(@user.can_edit?)
+
+      @part = Part[params[:id]]
+      project_id = @part.project_id
+      halt(400, "Invalid part.") if @part.nil?
+
+      # Drawing Release Trigger
+      if (@part.quantity == "")
+        halt(400, "No quantity set.")
+      elseif (@part.drawing_created == 0)
+        halt(400, "No drawing uploaded")
+      else
+        $slack_bot.chat_postMessage(channel: 'parts-notifications',
+                                    as_user: true,
+                                    attachments: [
+                                                   {
+                                                     "fallback": "New part ready for manufacture.",
+                                                     "color": "#36a64f",
+                                                     "pretext": "New part ready for manufacture!",
+                                                     "title": "#{@part.full_part_number} (#{@part.name})",
+                                                     "title_link": "#{CheesyCommon::Config.base_address}/parts/#{@part.id}",
+                                                     "fields": [
+                                                                  {
+                                                                    "title": "Parent assembly",
+                                                                    "value": "#{@part.parent_part.full_part_number} (#{@part.parent_part.name})",
+                                                                    "short": false
+                                                                  },
+                                                                  {
+                                                                    "title": "Quantity",
+                                                                    "value": "#{@part.quantity}",
+                                                                    "short": true
+                                                                  },
+                                                                  {
+                                                                    "title": "Revision",
+                                                                    "value": "#{@part.rev}",
+                                                                    "short": true
+                                                                  }
+                                                                            ],
+                                                     "footer": "Deep Blue Parts",
+                                                     "footer_icon": "http://carlmontrobotics.org/images/ico/TabIcon.png",
+                                                     "ts": "#{Time.now.to_i}"
+                                                   }
+                                                 ]) unless @part.status == "ready"
+
+        # Post to Trello and save link
+        if (@part.trello_link == "")
+          EM.defer do
+            trello_bot = Trello::Member.find("partsbot")
+            fab = trello_bot.boards[0]
+            list = fab.lists.first # MAKE SURE THE BOARD HAS A LIST
+
+            @part.quantity.to_i.times do |serial|
+              card = Trello::Card.create(name: "Fabricate #{@part.full_part_number}-#{serial+1} (#{@part.name})",
+                                         desc: "Parts DB link: #{CheesyCommon::Config.base_address}/parts/#{@part.id}",
+                                         list_id: list.id)
+              @part.trello_link << (card.url + ",")
+              checklist = Trello::Checklist.create(name: "Fabrication Checklist",
+                                                   board_id: fab.id,
+                                                   card_id: card.id)
+              checklist_items = ["Verify that the current revision letter matches the drawing",
+                               "Read the dimension drawing, bring any issues to DESIGN",
+                               "Update parts DB status to Manufacturing in Progress",
+                               "Identify tools/resources needed for fabrication of part",
+                               "Ensure proper usage and safety procedures are known and followed",
+                               "Ensure that work is done over a whiteboard or plywood",
+                               "Check layout",
+                               "Verify layout with student lead or mentor",
+                               "Fabricate part",
+                               "Inspect part, note any dimensions which are out of tolerance",
+                               "Bring part to QA for inspection and sign-off",
+                               "Serialize the part using an engraver (or pen, if specified)",
+                               "Clean the part and prepare it for finishing, if specified",
+                               "Bag and file the part in the appropriate place",
+                               "File the completed drawing (and traveler, if used) in the appropriate binder",
+                               "Update trello, parts database, and your task lead"]
+              checklist_items.each do |entry|
+                checklist.add_item(entry)
+              end
+              @part.save
+            end
+          end
+        end
+      end
+      @part.status = "ready"
+      @part.save
+      redirect "/parts/#{@part.id}"
     end
 
     get "/parts/:id/delete" do
@@ -541,7 +567,6 @@ if @user.can_edit?
       @user_delete.delete
       redirect "/users"
     end
-
 
     get "/register" do
       @admin_new_user = false
