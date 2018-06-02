@@ -35,17 +35,20 @@ module CheesyParts
           @user = User[session[:user_id]]
           authenticate! unless ["/login", "/register"].include?(request.path)
 
-          # Initialize slack bot
-          Slack.configure do |config|
-    	  config.token = CheesyCommon::Config.slack_api_token
-          end
-          $slack_bot = Slack::Web::Client.new
-          $slack_bot.auth_test
-
-          # Initialize Trello bot
-          Trello.configure do |config|
-    	  config.developer_public_key = CheesyCommon::Config.trello_public
-    	  config.member_token = CheesyCommon::Config.trello_member
+	  if CheesyCommon::Config.slack_enabled
+		  # Initialize slack bot
+		  Slack.configure do |config|
+		  config.token = CheesyCommon::Config.slack_api_token
+		  end
+		  $slack_bot = Slack::Web::Client.new
+		  $slack_bot.auth_test
+	  end
+	  if CheesyCommon::Config.trello_enabled
+		  # Initialize Trello bot
+		  Trello.configure do |config|
+		  config.developer_public_key = CheesyCommon::Config.trello_public
+		  config.member_token = CheesyCommon::Config.trello_member
+	  end
       end
     end
 
@@ -317,7 +320,7 @@ module CheesyParts
             @part.rev_history << ",#{@part.rev}"
           end
           @part.drawing_created = 1
-		    end
+        end
 
         if params[:toolpath]
           file = params[:toolpath][:tempfile]
@@ -371,40 +374,41 @@ module CheesyParts
       elseif (@part.drawing_created == 0)
         halt(400, "No drawing uploaded")
       else
-        $slack_bot.chat_postMessage(channel: 'parts-notifications',
-                                    as_user: true,
-                                    attachments: [
-                                                   {
-                                                     "fallback": "New part ready for manufacture.",
-                                                     "color": "#36a64f",
-                                                     "pretext": "New part ready for manufacture!",
-                                                     "title": "#{@part.full_part_number} (#{@part.name})",
-                                                     "title_link": "#{CheesyCommon::Config.base_address}/parts/#{@part.id}",
-                                                     "fields": [
-                                                                  {
-                                                                    "title": "Parent assembly",
-                                                                    "value": "#{@part.parent_part.full_part_number} (#{@part.parent_part.name})",
-                                                                    "short": false
-                                                                  },
-                                                                  {
-                                                                    "title": "Quantity",
-                                                                    "value": "#{@part.quantity}",
-                                                                    "short": true
-                                                                  },
-                                                                  {
-                                                                    "title": "Revision",
-                                                                    "value": "#{@part.rev}",
-                                                                    "short": true
-                                                                  }
-                                                                            ],
-                                                     "footer": "Deep Blue Parts",
-                                                     "footer_icon": "http://carlmontrobotics.org/images/ico/TabIcon.png",
-                                                     "ts": "#{Time.now.to_i}"
-                                                   }
-                                                 ]) unless @part.status == "ready"
-
+	if CheesyCommon::Config.slack_enabled
+		$slack_bot.chat_postMessage(channel: 'parts-notifications',
+					    as_user: true,
+					    attachments: [
+							   {
+							     "fallback": "New part ready for manufacture.",
+							     "color": "#36a64f",
+							     "pretext": "New part ready for manufacture!",
+							     "title": "#{@part.full_part_number} (#{@part.name})",
+							     "title_link": "#{CheesyCommon::Config.base_address}/parts/#{@part.id}",
+							     "fields": [
+									  {
+									    "title": "Parent assembly",
+									    "value": "#{@part.parent_part.full_part_number} (#{@part.parent_part.name})",
+									    "short": false
+									  },
+									  {
+									    "title": "Quantity",
+									    "value": "#{@part.quantity}",
+									    "short": true
+									  },
+									  {
+									    "title": "Revision",
+									    "value": "#{@part.rev}",
+									    "short": true
+									  }
+										    ],
+							     "footer": "Deep Blue Parts",
+							     "footer_icon": "http://carlmontrobotics.org/images/ico/TabIcon.png",
+							     "ts": "#{Time.now.to_i}"
+							   }
+							 ]) unless @part.status == "ready"
+	end
         # Post to Trello and save link
-        if (@part.trello_link == "")
+        if (@part.trello_link == "") and CheesyCommon::Config.trello_enabled
           EM.defer do
             trello_bot = Trello::Member.find("partsbot")
             fab = trello_bot.boards[0]
