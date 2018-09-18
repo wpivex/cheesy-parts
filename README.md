@@ -1,13 +1,12 @@
-Cheesy Parts
+Part Management
 ============
 
-Cheesy Parts is a web-based system for tracking parts through the design and manufacture cycle. It assigns
+Part Management is a web-based system for tracking parts through the design and manufacture cycle. It assigns
 part numbers with which CAD files can be saved to version control and stores information about parts'
 current manufacturing status.
 
-Cheesy Parts is written in Ruby using the [Sinatra](http://sinatrarb.com) framework and uses MySQL as the
-backing datastore. Development and production are run on UNIX (OS X and Ubuntu), so there are no guarantees
-it'll work on Windows, sorry.
+Part Managemenet is written in Ruby using the [Sinatra](http://sinatrarb.com) framework and uses MySQL as the
+backing datastore. Development and production are run on Linux (Arch, Ubuntu), and is not designed to work on Windows.
 
 ## Development
 
@@ -50,6 +49,6 @@ version of Cheesy Parts, pull from the origin, and restart the server.
 
 ## Contributing
 
-If you have a suggestion for a new feature, create an issue on GitHub or shoot an e-mail to
-[pat@patfairbank.com](mailto:pat@patfairbank.com). Or if you have some Ruby-fu and are feeling adventurous,
-fork this project and send a pull request.
+If you're on the VexU team or otherwise want to contribute back to our fork, great! Create an issue or shoot an email to [blward@wpi.edu](mailto:blward@wpi.edu), or open a pull request if you have some Ruby-fu. 
+
+Otherwise, you can contribute to the original project back at [Team254/cheesy-parts](https://github.com/Team254/cheesy-parts).
